@@ -8,7 +8,7 @@ if (!defined('ROOT_PATH')) {
 
 // Define la ruta al directorio seguro donde se encuentran los archivos de configuración
 // ¡ASEGÚRATE DE QUE ESTA RUTA SEA CORRECTA PARA TU SERVIDOR!
-define('SECURE_CONFIG_DIR', '/home/qdosnetw/certieducacion4_secure_configs');
+define('SECURE_CONFIG_DIR', '/home/qdosnetw/certieducacion3_secure_configs');
 
 // Carga el archivo de configuración principal desde el directorio seguro
 require_once SECURE_CONFIG_DIR . '/main_config.php';

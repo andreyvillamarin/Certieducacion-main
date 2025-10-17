@@ -1,10 +1,6 @@
 // assets/js/main.js
 
-console.log('main.js cargado.'); // <-- AÑADIDO PARA DEPURACIÓN
-
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('DOMContentLoaded disparado.'); // <-- AÑADIDO PARA DEPURACIÓN
-
     const formCheckId = document.getElementById('form-check-id');
     const formSendCode = document.getElementById('form-send-code');
     const alertMessage = document.getElementById('alert-message');
@@ -33,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function hideAlert() {
         alertMessage.classList.add('d-none');
     }
-
+    
     /**
      * Activa o desactiva el spinner en un botón.
      * @param {HTMLElement} button - El elemento del botón.
@@ -52,49 +48,39 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // 1. Manejar el envío del formulario de identificación
-    if (formCheckId) { // <-- AÑADIDO PARA DEPURACIÓN
-        formCheckId.addEventListener('submit', function (e) {
-            e.preventDefault();
-            console.log('Evento submit de form-check-id capturado.'); // <-- AÑADIDO PARA DEPURACIÓN
-            hideAlert();
-            toggleSpinner(btnCheckId, true);
+    formCheckId.addEventListener('submit', function (e) {
+        e.preventDefault();
+        hideAlert();
+        toggleSpinner(btnCheckId, true);
 
-            const formData = new FormData(formCheckId);
-            formData.append('action', 'check_id');
+        const formData = new FormData(formCheckId);
+        formData.append('action', 'check_id');
 
-            fetch('ajax_handler.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                console.log('Respuesta de fetch recibida.'); // <-- AÑADIDO PARA DEPURACIÓN
-                return response.json();
-            })
-            .then(data => {
-                console.log('Datos JSON procesados:', data); // <-- AÑADIDO PARA DEPURACIÓN
-                if (data.success) {
-                    // Estudiante encontrado, mostrar paso 2
-                    step1Div.classList.add('d-none');
-                    displayVerificationOptions(data.student);
-                    studentIdHidden.value = data.student.id;
-                    step2Div.classList.remove('d-none');
-                } else {
-                    // Estudiante no encontrado o error
-                    showAlert(data.message || 'No se encontró la identificación.');
-                }
-            })
-            .catch(error => {
-                console.error('Error en fetch:', error); // <-- AÑADIDO PARA DEPURACIÓN
-                showAlert('Ocurrió un error de comunicación. Inténtalo de nuevo.');
-            })
-            .finally(() => {
-                toggleSpinner(btnCheckId, false);
-            });
+        fetch('ajax_handler.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Estudiante encontrado, mostrar paso 2
+                step1Div.classList.add('d-none');
+                displayVerificationOptions(data.student);
+                studentIdHidden.value = data.student.id;
+                step2Div.classList.remove('d-none');
+            } else {
+                // Estudiante no encontrado o error
+                showAlert(data.message || 'No se encontró la identificación.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Ocurrió un error de comunicación. Inténtalo de nuevo.');
+        })
+        .finally(() => {
+             toggleSpinner(btnCheckId, false);
         });
-    } else { // <-- AÑADIDO PARA DEPURACIÓN
-        console.error('Elemento form-check-id no encontrado.'); // <-- AÑADIDO PARA DEPURACIÓN
-    }
-
+    });
 
     /**
      * Muestra las opciones de verificación (SMS/Email) basadas en los datos del estudiante.
@@ -102,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
      */
     function displayVerificationOptions(student) {
         verificationOptionsDiv.innerHTML = ''; // Limpiar opciones previas
-
+        
         let hasOptions = false;
 
         // Opción de Email
@@ -123,11 +109,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Opción de SMS
         if (student.phone_hint) {
-            hasOptions = true;
+             hasOptions = true;
             const smsOptionHTML = `
                 <div class="verification-option" data-method="sms">
                     <input class="form-check-input" type="radio" name="verification_method" id="method_sms" value="sms" ${!student.email_hint ? 'checked' : ''}>
-                    <label class="form-check-label w-100" for="method_sms">
+                     <label class="form-check-label w-100" for="method_sms">
                         <i class="fa-solid fa-comment-sms option-icon"></i>
                         <span class="option-text">Enviar por SMS</span><br>
                         <span class="option-hint">Terminado en ••${student.phone_hint}</span>
@@ -136,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
             verificationOptionsDiv.insertAdjacentHTML('beforeend', smsOptionHTML);
         }
-
+        
         // Si no hay opciones, mostrar mensaje
         if(!hasOptions) {
             noOptionsMessage.classList.remove('d-none');
@@ -151,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 this.querySelector('input[type="radio"]').checked = true;
             });
         });
-
+        
         // Seleccionar la primera por defecto
         const firstOption = document.querySelector('.verification-option');
         if(firstOption) {
@@ -164,13 +150,13 @@ document.addEventListener('DOMContentLoaded', function () {
     formSendCode.addEventListener('submit', function(e) {
         e.preventDefault();
         hideAlert();
-
+        
         const selectedMethod = document.querySelector('input[name="verification_method"]:checked');
         if (!selectedMethod) {
             showAlert('Por favor, selecciona un método de verificación.');
             return;
         }
-
+        
         toggleSpinner(btnSendCode, true);
 
         const formData = new FormData(formSendCode);

@@ -10,7 +10,7 @@
 require_once 'config.php'; // O la ruta correcta a config.php
 
 // Incluir la conexión a la base de datos y la configuración
-// require_once 'includes/database.php'; // No longer needed for student lookup
+require_once 'includes/database.php';
 require_once 'includes/security_functions.php';
 
 // -- VALIDACIÓN DE TOKEN CSRF --
@@ -49,90 +49,37 @@ $action = $_POST['action'];
 
 switch ($action) {
     case 'check_id':
-        if (!isset($_POST['identification']) || empty($_POST['identification'])) {
-            send_response(['success' => false, 'message' => 'El número de identificación es requerido.']);
-        }
-
+        if (!isset($_POST['identification']) || empty($_POST['identification'])) { send_response(['success' => false, 'message' => 'El número de identificación es requerido.']); }
+        
         $identification = trim($_POST['identification']);
         $ip_address = get_ip_address();
 
-        // --- Mantenemos la protección contra fuerza bruta ---
+        // --- INICIO: PROTECCIÓN CONTRA FUERZA BRUTA ---
         if (check_rate_limit($pdo, $ip_address, $identification)) {
             send_response(['success' => false, 'message' => 'Has excedido el número de intentos permitidos. Por favor, espera 15 minutos.']);
         }
+        // --- FIN: PROTECCIÓN CONTRA FUERZA BRUTA ---
 
-        // --- INICIO DE LA NUEVA LÓGICA CON API EXTERNA ---
         try {
-            // 1. Define la URL de tu API externa.
-            $api_url = API_BASE_URL . 'certificates/student/' . urlencode($identification);
-
-            // 2. Inicializa cURL para hacer la petición a la API
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $api_url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Devuelve la respuesta como string
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10); // Tiempo de espera de 10 segundos
-            // Opcional: Si tu API requiere un token de autenticación, lo añades aquí
-            // curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer TU_API_KEY']);
-
-            $response = curl_exec($ch);
-            $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            // 3. Procesa la respuesta de la API
-            if ($http_code == 200) {
-                // Éxito: El estudiante fue encontrado en la API
-                $certificates_data = json_decode($response, true);
-
-                if (empty($certificates_data)) {
-                    // No certificates found for this student
-                    record_failed_attempt($pdo, $ip_address, $identification);
-                    send_response(['success' => false, 'message' => 'La identificación ingresada no se encuentra registrada en nuestro sistema o no tiene certificados asociados.']);
-                }
-                $student_data_from_api = $certificates_data[0]['student']; // Get student data from the first certificate
-
-                // Adaptamos la respuesta para que coincida con lo que el frontend espera.
-                // La API debería devolver 'id', 'name', 'email', 'phone'.
-                $response_data = [
-                    'id' => $student_data_from_api['id'], // Asume que la API devuelve un 'id'
-                    'name' => $student_data_from_api['name']
-                ];
-                if (!empty($student_data_from_api['email'])) {
-                    $email_parts = explode('@', $student_data_from_api['email']);
-                    $name = $email_parts[0];
-                    $domain = $email_parts[1];
+            // CORRECCIÓN: No permitir login a estudiantes desactivados.
+            $stmt = $pdo->prepare("SELECT id, name, phone, email FROM students WHERE identification = ? AND deleted_at IS NULL");
+            $stmt->execute([$identification]);
+            $student = $stmt->fetch();
+            if ($student) {
+                $response_data = ['id' => $student['id'], 'name' => $student['name']];
+                if (!empty($student['email'])) {
+                    $email_parts = explode('@', $student['email']); $name = $email_parts[0]; $domain = $email_parts[1];
                     $response_data['email_hint'] = substr($name, 0, 2) . str_repeat('*', max(0, strlen($name) - 4)) . substr($name, -2) . '@' . $domain;
                 }
-                if (!empty($student_data_from_api['phone'])) {
-                    $response_data['phone_hint'] = substr($student_data_from_api['phone'], -2);
-                }
-                
-                // IMPORTANTE: Para que el siguiente paso (enviar código) funcione,
-                // necesitamos guardar temporalmente los datos del estudiante en la sesión
-                // o tener una forma de recuperarlos sin consultar la BD local.
-                // Por ahora, asumimos que la API es la única fuente de verdad.
-                // El `send_code` también necesitará ser modificado.
-                
-                // Guardamos los datos necesarios para el siguiente paso
-                $_SESSION['external_student_data'] = [
-                    'id' => $student_data_from_api['id'],
-                    'email' => $student_data_from_api['email'],
-                    'phone' => $student_data_from_api['phone']
-                ];
-
-
+                if (!empty($student['phone'])) { $response_data['phone_hint'] = substr($student['phone'], -2); }
                 send_response(['success' => true, 'student' => $response_data]);
-
-            } else {
-                // Error: El estudiante no fue encontrado (404) o hubo otro error en la API
+            } else { 
+                // --- INICIO: REGISTRO DE INTENTO FALLIDO ---
                 record_failed_attempt($pdo, $ip_address, $identification);
-                send_response(['success' => false, 'message' => 'La identificación ingresada no se encuentra registrada en nuestro sistema.']);
+                // --- FIN: REGISTRO DE INTENTO FALLIDO ---
+                send_response(['success' => false, 'message' => 'La identificación ingresada no se encuentra registrada en nuestro sistema.']); 
             }
-
-        } catch (Exception $e) {
-            error_log('Error en check_id con API externa: ' . $e->getMessage());
-            send_response(['success' => false, 'message' => 'Ocurrió un error en el servidor.']);
-        }
-        // --- FIN DE LA NUEVA LÓGICA ---
+        } catch (PDOException $e) { error_log('Error en check_id: ' . $e->getMessage()); send_response(['success' => false, 'message' => 'Ocurrió un error en el servidor.']); }
         break;
 
     case 'send_code':
@@ -143,23 +90,15 @@ switch ($action) {
         $student_id = $_POST['student_id'];
         $method = $_POST['verification_method'];
 
-        // --- INICIO DE LA NUEVA LÓGICA SIN CONSULTA A BD ---
-        // Verificamos que los datos del estudiante externo existan en la sesión
-        if (!isset($_SESSION['external_student_data']) || $_SESSION['external_student_data']['id'] != $student_id) {
-            send_response(['success' => false, 'message' => 'No se encontraron datos del estudiante. Por favor, vuelve a introducir tu identificación.']);
-        }
-        
-        // Usamos los datos de la sesión en lugar de consultar la base de datos
-        $student = $_SESSION['external_student_data'];
-        // --- FIN DE LA NUEVA LÓGICA ---
-
         try {
-            // El resto del código permanece casi igual, pero usando la variable $student que hemos creado
+            // CORRECCIÓN: No enviar código a estudiantes desactivados.
+            $stmt = $pdo->prepare("SELECT phone, email FROM students WHERE id = ? AND deleted_at IS NULL");
+            $stmt->execute([$student_id]);
+            $student = $stmt->fetch();
+            if (!$student) { send_response(['success' => false, 'message' => 'Estudiante no encontrado o inactivo.']); }
+
             $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
             $expires_at = (new DateTime('+10 minutes'))->format('Y-m-d H:i:s');
-            
-            // IMPORTANTE: Esta inserción en 'verification_codes' se mantiene en la base de datos local.
-            // Esto es aceptable, ya que los códigos son temporales.
             $stmt_insert = $pdo->prepare("INSERT INTO verification_codes (student_id, code, method, expires_at) VALUES (?, ?, ?, ?)");
             $stmt_insert->execute([$student_id, $code, $method, $expires_at]);
 
@@ -274,49 +213,21 @@ switch ($action) {
         if (!isset($_POST['validation_code']) || empty($_POST['validation_code'])) { send_response(['success' => false, 'message' => 'El código de validación es requerido.']); }
         $validation_code = trim($_POST['validation_code']);
         try {
-            $api_url = API_BASE_URL . 'certificates/validate.php?code=' . urlencode($validation_code);
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $api_url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-            
-            $response = curl_exec($ch);
-
-            // Manejo de errores de cURL
-            if ($response === false) {
-                $curl_error = curl_error($ch);
-                curl_close($ch); // Cerrar el handle aquí
-                error_log('cURL error en validate_certificate_code: ' . $curl_error);
-                send_response(['success' => false, 'message' => 'Error de comunicación con el servicio de validación.']);
-            }
-
-            // Obtener info y cerrar handle SOLO si no hubo error
-            $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if ($http_code == 200) {
-                $certificate_data = json_decode($response, true);
-                if (json_last_error() === JSON_ERROR_NONE && !empty($certificate_data) && !isset($certificate_data['error'])) {
-                    $certificate_safe = [
-                        'course_name' => htmlspecialchars($certificate_data['course']['name']),
-                        'issue_date' => (new DateTime($certificate_data['issue_date']))->format('d/m/Y'),
-                        'student_name' => htmlspecialchars($certificate_data['student']['name']),
-                        'student_id' => htmlspecialchars($certificate_data['student']['identification'])
-                    ];
-                    send_response(['success' => true, 'certificate' => $certificate_safe]);
-                } else {
-                    // API devolvió 200 pero con un error en el cuerpo JSON o vacío
-                    send_response(['success' => false, 'message' => 'El código no corresponde a un certificado válido.']);
-                }
-            } else {
-                // El código HTTP no fue 200
-                send_response(['success' => false, 'message' => 'El código no corresponde a un certificado válido.']);
-            }
-
-        } catch (Exception $e) {
-            error_log('Excepción en validate_certificate_code: ' . $e->getMessage());
-            send_response(['success' => false, 'message' => 'Ocurrió un error en el servidor al validar el certificado.']);
-        }
+            // CORRECCIÓN: Un certificado solo es válido si ni él ni el estudiante han sido eliminados.
+            $sql = "SELECT c.course_name, c.issue_date, s.name as student_name, s.identification as student_id 
+                    FROM certificates c 
+                    JOIN students s ON c.student_id = s.id 
+                    WHERE c.validation_code = ? AND c.deleted_at IS NULL AND s.deleted_at IS NULL";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$validation_code]);
+            $certificate = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($certificate) {
+                // Prevenir XSS: escapar todos los datos antes de enviarlos
+                $certificate_safe = array_map('htmlspecialchars', $certificate);
+                $certificate_safe['issue_date'] = (new DateTime($certificate['issue_date']))->format('d/m/Y');
+                send_response(['success' => true, 'certificate' => $certificate_safe]);
+            } else { send_response(['success' => false, 'message' => 'El código no corresponde a un certificado válido.']); }
+        } catch (PDOException $e) { error_log('Error en validate_certificate_code: ' . $e->getMessage()); send_response(['success' => false, 'message' => 'Ocurrió un error en el servidor al validar el certificado.']); }
         break;
 
     default:

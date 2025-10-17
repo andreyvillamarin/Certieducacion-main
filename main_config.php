@@ -12,16 +12,15 @@ require_once SECURE_CONFIG_DIR . '/db_credentials.php';
 require_once ROOT_PATH . '/includes/database.php';
 
 // -- 2. CONFIGURACIÓN GENERAL DE LA APLICACIÓN --
-define('BASE_URL', 'https://qdos.network/demos/certieducacion4/');
-define('API_BASE_URL', 'https://qdosnetwork.com/api_php/');
+define('BASE_URL', 'https://qdos.network/demos/certieducacion3/');
 define('WHATSAPP_SUPPORT_NUMBER', '573204615527');
 
 // -- 3. CONFIGURACIÓN DE ENVÍO DE CORREO (BREVO SMTP) --
-define('BREVO_SMTP_HOST', 'smtp-relay.brevo.com');
+define('BREVO_SMTP_HOST', '');
 define('BREVO_SMTP_PORT', 587);
 define('BREVO_SMTP_USER', '');
 define('BREVO_SMTP_KEY', '');
-define('SMTP_FROM_EMAIL', '');
+define('SMTP_FROM_EMAIL', 'andreyvillamarin@gmail.com');
 define('SMTP_FROM_NAME', 'Comfamiliar');
 
 // -- 4. CONFIGURACIÓN DE ENVÍO DE SMS (ALTIRIA) --
@@ -53,7 +52,7 @@ if (empty($_SESSION['csrf_token'])) {
 }
 
 // Headers de seguridad para prevenir ataques comunes
-    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' https://placehold.co data: https://qdos.network; object-src 'none'; frame-ancestors 'self'; form-action 'self'; base-uri 'self';");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' https://placehold.co data: https://qdos.network; object-src 'none'; frame-ancestors 'self'; form-action 'self'; base-uri 'self';");
 header("X-Content-Type-Options: nosniff"); // Previene que el navegador interprete archivos con un tipo MIME incorrecto
 header("X-Frame-Options: SAMEORIGIN"); // Alternativa a CSP para prevenir Clickjacking
 header("X-XSS-Protection: 1; mode=block"); // Activa el filtro XSS en navegadores antiguos

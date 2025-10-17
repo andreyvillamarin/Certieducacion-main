@@ -1,3 +1,35 @@
-[18-Sep-2025 08:05:19 America/Bogota] PHP Warning:  Undefined variable $http_code in /home/qdosnetw/public_html/demos/certieducacion4/ajax_handler.php on line 284
-[18-Sep-2025 08:05:45 America/Bogota] PHP Warning:  Undefined variable $http_code in /home/qdosnetw/public_html/demos/certieducacion4/ajax_handler.php on line 284
-[18-Sep-2025 08:07:15 America/Bogota] PHP Warning:  Undefined variable $http_code in /home/qdosnetw/public_html/demos/certieducacion4/ajax_handler.php on line 284
+[22-Jul-2025 07:20:53 America/Bogota] Antes de establecer la sesión: Array
+(
+)
+
+[22-Jul-2025 07:20:53 America/Bogota] Después de establecer la sesión: Array
+(
+    [student_id] => 1
+    [logged_in] => 1
+)
+
+[17-Aug-2025 19:38:38 America/Bogota] Error al enviar código: SMTP Error: Could not authenticate.
+[17-Aug-2025 19:50:01 America/Bogota] Antes de establecer la sesión: Array
+(
+    [csrf_token] => 8197f456302968dbee814f57426e0d576d4b180e64070d4278efddff35bff150
+)
+
+[17-Aug-2025 19:50:01 America/Bogota] Después de establecer la sesión: Array
+(
+    [csrf_token] => 8197f456302968dbee814f57426e0d576d4b180e64070d4278efddff35bff150
+    [student_id] => 1
+    [logged_in] => 1
+)
+
+[17-Aug-2025 19:50:46 America/Bogota] Antes de establecer la sesión: Array
+(
+    [csrf_token] => 5fa5ac9b701120da7cb1f5d92188a04d3ab0e0173d9e9ea34bd5964811acfb22
+)
+
+[17-Aug-2025 19:50:46 America/Bogota] Después de establecer la sesión: Array
+(
+    [csrf_token] => 5fa5ac9b701120da7cb1f5d92188a04d3ab0e0173d9e9ea34bd5964811acfb22
+    [student_id] => 1
+    [logged_in] => 1
+)
+
