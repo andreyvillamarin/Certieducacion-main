@@ -1,0 +1,72 @@
+/* admin/css/admin-style.css */
+
+body {
+    overflow-x: hidden;
+    font-family: 'Poppins', sans-serif;
+}
+
+#sidebar-wrapper {
+    min-height: 100vh;
+    margin-left: -15rem;
+    transition: margin .25s ease-out;
+}
+
+#sidebar-wrapper .sidebar-heading {
+    padding: 0.875rem 1.25rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+#sidebar-wrapper .list-group {
+    width: 15rem;
+}
+#sidebar-wrapper .list-group-item {
+    border: none;
+    padding: 1rem 1.25rem;
+}
+#sidebar-wrapper .list-group-item:hover {
+    background-color: #495057 !important;
+}
+
+
+#page-content-wrapper {
+    min-width: 100vw;
+}
+
+#wrapper.toggled #sidebar-wrapper {
+    margin-left: 0;
+}
+
+@media (min-width: 768px) {
+    #sidebar-wrapper {
+        margin-left: 0;
+    }
+
+    #page-content-wrapper {
+        min-width: 0;
+        width: 100%;
+    }
+
+    #wrapper.toggled #sidebar-wrapper {
+        margin-left: -15rem;
+    }
+}
+
+/* Estilos para las tarjetas del dashboard */
+.card .border-left-primary { border-left: .25rem solid #4e73df!important; }
+.card .border-left-success { border-left: .25rem solid #1cc88a!important; }
+.text-gray-300 { color: #dddfeb!important; }
+.text-gray-800 { color: #5a5c69!important; }
+```php
+<?php
+// admin/logout.php
+require_once '../config.php';
+
+// Destruir todas las variables de la sesión de admin.
+session_destroy();
+
+// Redirigir a la página de login
+header("Location: index.php");
+exit;
+?>

@@ -1,0 +1,157 @@
+/* assets/css/style.css */
+
+/* Importar la fuente Poppins */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+.main-container {
+    max-width: 450px;
+    width: 100%;
+}
+
+.login-card {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease-in-out;
+}
+
+.login-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+    background-color: #003366; /* Azul corporativo oscuro */
+    color: #ffffff;
+    padding: 3rem;
+    border-bottom: none;
+}
+
+.logo-img {
+    max-width: 200px;
+    height: auto;
+    border-radius: 100%;
+    border: 3px solid #ffffff;
+    background-color: #fff;
+}
+
+.card-title {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.card-subtitle {
+    font-weight: 400;
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+.form-control {
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    border: 1px solid #ced4da;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus {
+    border-color: #0056b3;
+    box-shadow: 0 0 0 0.25rem rgba(0, 86, 179, 0.25);
+}
+
+.btn-primary {
+    background-color: #0056b3; /* Azul primario */
+    border-color: #0056b3;
+    padding: 0.85rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #004494;
+    border-color: #004494;
+    transform: translateY(-2px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.card-footer {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.link-secondary {
+    text-decoration: none;
+    font-weight: 600;
+    color: #555;
+    transition: color 0.2s;
+}
+
+.link-secondary:hover {
+    color: #0056b3;
+}
+
+/* Estilos para las opciones de verificación */
+.verification-option {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 1rem;
+}
+
+.verification-option:hover {
+    background-color: #f8f9fa;
+    border-color: #0056b3;
+}
+
+.verification-option.selected {
+    border-color: #0056b3;
+    background-color: #e7f1ff;
+    box-shadow: 0 0 5px rgba(0, 86, 179, 0.2);
+}
+
+.verification-option .form-check-input {
+    float: right;
+    margin-top: 5px;
+}
+
+.verification-option .option-icon {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    color: #0056b3;
+}
+
+.verification-option .option-text {
+    font-weight: 600;
+}
+
+.verification-option .option-hint {
+    font-size: 0.85rem;
+    color: #6c757d;
+}

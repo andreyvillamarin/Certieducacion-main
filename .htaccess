@@ -1,0 +1,13 @@
+Options -Indexes
+
+<FilesMatch "^(error_log|config\.php|db_config\.php|setup\.php)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+<Directory "admin">
+    <Files "db_config.php">
+        Order Allow,Deny
+        Deny from all
+    </Files>
+</Directory>
